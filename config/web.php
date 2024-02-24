@@ -1,5 +1,7 @@
 <?php
 
+use yii\web\Response;
+
 $params = require __DIR__ . '/params.php';
 
 if (file_exists(__DIR__ . '/params.local.php')) {
@@ -33,6 +35,19 @@ $config = [
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => '5aAxh-SloDG3XJSAOuCOPdW9zU9BPaXr',
+            'parsers' => [
+                'application/json' => 'yii\web\JsonParser'
+            ],
+        ],
+        'response' => [
+            'formatters' => [
+                Response::FORMAT_JSON => [
+                    'class' => 'yii\web\JsonResponseFormatter',
+                    'prettyPrint' => YII_DEBUG, // use "pretty" output in debug mode
+                    'encodeOptions' => JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE,
+                    // ...
+                ],
+            ],
         ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
@@ -64,6 +79,10 @@ $config = [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
+                'GET telegram-bot'            => 'telegram-bot/index',
+                'GET telegram-webhook'        => 'telegram-bot/set-webhook',
+                'GET telegram-delete-webhook' => 'telegram-bot/delete-webhook',
+                'GET telegram-webhook-info'   => 'telegram-bot/webhook-info',
             ],
         ],
 
