@@ -2,9 +2,12 @@
 
 namespace app\controllers;
 
-use app\enums\Phrases;
 use app\enums\TelegramCommands;
-use app\services\telegram\TelegramClient;
+use app\services\telegram\commands\Command;
+use app\services\telegram\commands\DefaultCommand;
+use app\services\telegram\commands\HelpCommand;
+use app\services\telegram\commands\StartCommand;
+use app\services\telegram\commands\StoreCommand;
 use app\services\telegram\TelegramClientInterface;
 use app\services\telegram\TelegramMessageService;
 use Telegram\Bot\Exceptions\TelegramSDKException;
@@ -12,7 +15,6 @@ use Telegram\Bot\Objects\WebhookInfo;
 use Yii;
 use yii\base\InvalidConfigException;
 use yii\di\NotInstantiableException;
-use yii\helpers\Url;
 use yii\web\BadRequestHttpException;
 use yii\web\Controller;
 use yii\web\Response;
@@ -66,42 +68,21 @@ class TelegramBotController extends Controller
         $name = $update['message']['from']['first_name'];
 
         if (empty($text)) {
-            $this->sendDefaultMessage($chatId, $name);
+            (new DefaultCommand())->execute($chatId, $name);
             return;
         }
 
-        $keyboardParams = $this->getKeyboardParams();
-        $inlineKeyboardParams = $this->getInlineKeyboardParams();
+        $commands = [
+            TelegramCommands::START->value   => new StartCommand(),
+            TelegramCommands::HELP->value    => new HelpCommand(),
+            TelegramCommands::STORE->value   => new StoreCommand(),
+            TelegramCommands::DEFAULT->value => new DefaultCommand(),
+        ];
 
-        switch ($text) {
-            case TelegramCommands::START->value:
-                $this->tg->sendMessage([
-                    'chat_id'      => $chatId,
-                    'text'         => Yii::t('app', 'Привет, {name}!', ['name' => $name]),
-                    'parse_mode'   => TelegramClient::PARSE_MODE_HTML,
-                    'reply_markup' => $this->messageService->generateKeyboard($keyboardParams),
-                ]);
-                break;
-            case TelegramCommands::HELP->value:
-                $this->tg->sendMessage([
-                    'chat_id'    => $chatId,
-                    'text'       => Yii::t('app', 'Напиши сообщение'),
-                    'parse_mode' => TelegramClient::PARSE_MODE_HTML,
-                ]);
-                break;
+        /** @var Command $command */
+        $command = $commands[$text] ?? $commands[TelegramCommands::DEFAULT->value];
 
-            case TelegramCommands::STORE->value:
-                $this->tg->sendMessage([
-                    'chat_id'      => $chatId,
-                    'text'         => Yii::t('app', 'Открыть магазин'),
-                    'parse_mode'   => TelegramClient::PARSE_MODE_HTML,
-                    'reply_markup' => $this->messageService->generateKeyboard($inlineKeyboardParams),
-                ]);
-                break;
-            default:
-                $this->sendDefaultMessage($chatId, $name);
-                break;
-        }
+        $command->execute($chatId, $name);
 
         $this->messageService->saveMessage($update);
     }
@@ -125,44 +106,5 @@ class TelegramBotController extends Controller
     public function actionWebhookInfo(): WebhookInfo
     {
         return $this->tg->getWebhookInfo();
-    }
-
-    /**
-     * @return array
-     */
-    private function getKeyboardParams(): array
-    {
-        return [
-            'keyboard'        => [
-                [
-                    ['text' => Phrases::BtnSubscribe->value, 'web_app' => ['url' => Url::to(['subscribe/index'], true)]],
-                ]
-            ],
-            'resize_keyboard' => true
-        ];
-    }
-
-    private function getInlineKeyboardParams()
-    {
-        return [
-            'inline_keyboard' => [
-                [
-                    ['text' => Phrases::BtnOpenStore->value, 'web_app' => ['url' => Url::to(['store/index'], true)]],
-                ]
-            ]
-        ];
-    }
-
-    /**
-     * @param $chatId
-     * @param $name
-     * @return void
-     */
-    private function sendDefaultMessage($chatId, $name): void
-    {
-        $this->tg->sendMessage([
-            'chat_id' => $chatId,
-            'text'    => Yii::t('app', 'Привет, {name}! Выбери команду в меню ниже', ['name' => $name]),
-        ]);
     }
 }

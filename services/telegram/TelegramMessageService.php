@@ -59,13 +59,4 @@ class TelegramMessageService extends Component
             Yii::error($message, 'telegram_message_save');
         }
     }
-
-    /**
-     * @param $params
-     * @return Keyboard
-     */
-    public function generateKeyboard($params)
-    {
-        return new Keyboard($params);
-    }
 }

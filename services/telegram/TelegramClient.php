@@ -4,6 +4,7 @@ namespace app\services\telegram;
 
 use Telegram\Bot\Api;
 use Telegram\Bot\Exceptions\TelegramSDKException;
+use Telegram\Bot\Keyboard\Keyboard;
 use Telegram\Bot\Objects\Update;
 use Telegram\Bot\Objects\User;
 use Telegram\Bot\Objects\WebhookInfo;
@@ -101,5 +102,14 @@ class TelegramClient extends Component implements TelegramClientInterface
         } catch (TelegramSDKException $e) {
             Yii::error($e->getMessage());
         }
+    }
+
+    /**
+     * @param $params
+     * @return Keyboard
+     */
+    public function generateKeyboard($params): Keyboard
+    {
+        return new Keyboard($params);
     }
 }
