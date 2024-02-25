@@ -4,6 +4,7 @@ namespace app\services\telegram;
 
 use Telegram\Bot\Api;
 use Telegram\Bot\Exceptions\TelegramSDKException;
+use Telegram\Bot\Objects\Update;
 use Telegram\Bot\Objects\User;
 use Telegram\Bot\Objects\WebhookInfo;
 use Yii;
@@ -11,7 +12,7 @@ use yii\base\Component;
 
 class TelegramClient extends Component implements TelegramClientInterface
 {
-    private $api;
+    private Api $api;
 
     /**
      * @throws TelegramSDKException
@@ -25,7 +26,7 @@ class TelegramClient extends Component implements TelegramClientInterface
     /**
      * @return User|array
      */
-    public function getMe()
+    public function getMe(): User|array
     {
         try {
             return $this->api->getMe();
@@ -37,7 +38,10 @@ class TelegramClient extends Component implements TelegramClientInterface
         }
     }
 
-    public function getWebhookUpdates()
+    /**
+     * @return Update
+     */
+    public function getWebhookUpdate(): Update
     {
         return $this->api->getWebhookUpdate();
     }
@@ -50,7 +54,11 @@ class TelegramClient extends Component implements TelegramClientInterface
         return $this->api->getUpdates();
     }
 
-    public function setWebhook()
+    /**
+     * @return bool
+     * @throws TelegramSDKException
+     */
+    public function setWebhook(): bool
     {
         $params = [
             'url' => Yii::$app->params['telegramWebhookUrl'],
@@ -61,7 +69,7 @@ class TelegramClient extends Component implements TelegramClientInterface
     /**
      * @throws TelegramSDKException
      */
-    public function deleteWebhook()
+    public function deleteWebhook(): bool
     {
         return $this->api->deleteWebhook();
     }

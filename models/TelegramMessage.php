@@ -22,7 +22,6 @@ use yii\db\ActiveRecord;
  */
 class TelegramMessage extends ActiveRecord
 {
-
     public static function tableName()
     {
         return 'telegram_message';
