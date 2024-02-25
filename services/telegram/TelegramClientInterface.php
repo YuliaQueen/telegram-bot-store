@@ -4,5 +4,5 @@ namespace app\services\telegram;
 
 interface TelegramClientInterface
 {
-    public function sendMessage($id, string $string);
+    public function sendMessage(array $config): void;
 }

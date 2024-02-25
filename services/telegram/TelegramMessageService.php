@@ -4,6 +4,7 @@ namespace app\services\telegram;
 
 use app\models\TelegramMessage;
 use Exception;
+use Telegram\Bot\Keyboard\Keyboard;
 use Telegram\Bot\Objects\Update;
 use Yii;
 use yii\base\Component;
@@ -57,5 +58,14 @@ class TelegramMessageService extends Component
             $message = Json::encode([$e->getMessage(), $update]);
             Yii::error($message, 'telegram_message_save');
         }
+    }
+
+    /**
+     * @param $params
+     * @return Keyboard
+     */
+    public function generateKeyboard($params)
+    {
+        return new Keyboard($params);
     }
 }

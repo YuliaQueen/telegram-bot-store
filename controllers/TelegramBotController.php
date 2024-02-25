@@ -2,6 +2,9 @@
 
 namespace app\controllers;
 
+use app\enums\Phrases;
+use app\enums\TelegramCommands;
+use app\services\telegram\TelegramClient;
 use app\services\telegram\TelegramClientInterface;
 use app\services\telegram\TelegramMessageService;
 use Telegram\Bot\Exceptions\TelegramSDKException;
@@ -9,6 +12,7 @@ use Telegram\Bot\Objects\WebhookInfo;
 use Yii;
 use yii\base\InvalidConfigException;
 use yii\di\NotInstantiableException;
+use yii\helpers\Url;
 use yii\web\BadRequestHttpException;
 use yii\web\Controller;
 use yii\web\Response;
@@ -58,11 +62,45 @@ class TelegramBotController extends Controller
         $update = $this->tg->getWebhookUpdate();
 
         $text = $update['message']['text'] ?? null;
+        $chatId = $update['message']['chat']['id'];
+        $name = $update['message']['from']['first_name'];
+
         if (empty($text)) {
-            $chatId = $update['message']['chat']['id'];
-            $name = $update['message']['from']['first_name'];
-            $this->tg->sendMessage($chatId, Yii::t('app', 'Привет, {name}! Ответ на такие сообщения пока не поддерживается', ['name' => $name]));
+            $this->sendDefaultMessage($chatId, $name);
             return;
+        }
+
+        $keyboardParams = $this->getKeyboardParams();
+        $inlineKeyboardParams = $this->getInlineKeyboardParams();
+
+        switch ($text) {
+            case TelegramCommands::START->value:
+                $this->tg->sendMessage([
+                    'chat_id'      => $chatId,
+                    'text'         => Yii::t('app', 'Привет, {name}!', ['name' => $name]),
+                    'parse_mode'   => TelegramClient::PARSE_MODE_HTML,
+                    'reply_markup' => $this->messageService->generateKeyboard($keyboardParams),
+                ]);
+                break;
+            case TelegramCommands::HELP->value:
+                $this->tg->sendMessage([
+                    'chat_id'    => $chatId,
+                    'text'       => Yii::t('app', 'Напиши сообщение'),
+                    'parse_mode' => TelegramClient::PARSE_MODE_HTML,
+                ]);
+                break;
+
+            case TelegramCommands::STORE->value:
+                $this->tg->sendMessage([
+                    'chat_id'      => $chatId,
+                    'text'         => Yii::t('app', 'Открыть магазин'),
+                    'parse_mode'   => TelegramClient::PARSE_MODE_HTML,
+                    'reply_markup' => $this->messageService->generateKeyboard($inlineKeyboardParams),
+                ]);
+                break;
+            default:
+                $this->sendDefaultMessage($chatId, $name);
+                break;
         }
 
         $this->messageService->saveMessage($update);
@@ -87,5 +125,44 @@ class TelegramBotController extends Controller
     public function actionWebhookInfo(): WebhookInfo
     {
         return $this->tg->getWebhookInfo();
+    }
+
+    /**
+     * @return array
+     */
+    private function getKeyboardParams(): array
+    {
+        return [
+            'keyboard'        => [
+                [
+                    ['text' => Phrases::BtnSubscribe->value, 'web_app' => ['url' => Url::to(['subscribe/index'], true)]],
+                ]
+            ],
+            'resize_keyboard' => true
+        ];
+    }
+
+    private function getInlineKeyboardParams()
+    {
+        return [
+            'inline_keyboard' => [
+                [
+                    ['text' => Phrases::BtnOpenStore->value, 'web_app' => ['url' => Url::to(['store/index'], true)]],
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * @param $chatId
+     * @param $name
+     * @return void
+     */
+    private function sendDefaultMessage($chatId, $name): void
+    {
+        $this->tg->sendMessage([
+            'chat_id' => $chatId,
+            'text'    => Yii::t('app', 'Привет, {name}! Выбери команду в меню ниже', ['name' => $name]),
+        ]);
     }
 }

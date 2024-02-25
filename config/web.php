@@ -83,6 +83,8 @@ $config = [
                 'GET telegram-webhook'        => 'telegram-bot/set-webhook',
                 'GET telegram-delete-webhook' => 'telegram-bot/delete-webhook',
                 'GET telegram-webhook-info'   => 'telegram-bot/webhook-info',
+
+                'GET subscribe'               => 'subscribe/index',
             ],
         ],
 

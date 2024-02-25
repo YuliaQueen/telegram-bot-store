@@ -12,6 +12,8 @@ use yii\base\Component;
 
 class TelegramClient extends Component implements TelegramClientInterface
 {
+    const PARSE_MODE_HTML = 'HTML';
+
     private Api $api;
 
     /**
@@ -83,13 +85,21 @@ class TelegramClient extends Component implements TelegramClientInterface
     }
 
     /**
-     * @throws TelegramSDKException
      */
-    public function sendMessage($id, string $string): void
+    public function sendMessage($config): void
     {
-        $this->api->sendMessage([
-            'chat_id' => $id,
-            'text'    => $string
-        ]);
+
+        try {
+            $chatId = $config['chat_id'];
+            $text   = $config['text'];
+
+            if (empty($chatId) || empty($text)) {
+                throw new TelegramSDKException('Chat id or text not found');
+            }
+
+            $this->api->sendMessage($config);
+        } catch (TelegramSDKException $e) {
+            Yii::error($e->getMessage());
+        }
     }
 }
