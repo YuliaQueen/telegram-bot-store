@@ -55,7 +55,17 @@ class TelegramBotController extends Controller
      */
     public function actionIndex(): void
     {
-        $this->messageService->saveMessage($this->tg->getWebhookUpdate());
+        $update = $this->tg->getWebhookUpdate();
+
+        $text = $update['message']['text'] ?? null;
+        if (empty($text)) {
+            $chatId = $update['message']['chat']['id'];
+            $name = $update['message']['from']['first_name'];
+            $this->tg->sendMessage($chatId, Yii::t('app', 'Привет, {name}! Ответ на такие сообщения пока не поддерживается', ['name' => $name]));
+            return;
+        }
+
+        $this->messageService->saveMessage($update);
     }
 
     public function actionSetWebhook(): bool

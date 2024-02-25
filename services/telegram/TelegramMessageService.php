@@ -7,6 +7,7 @@ use Exception;
 use Telegram\Bot\Objects\Update;
 use Yii;
 use yii\base\Component;
+use yii\helpers\Json;
 
 class TelegramMessageService extends Component
 {
@@ -53,7 +54,8 @@ class TelegramMessageService extends Component
                 }
             }
         } catch (Exception $e) {
-            Yii::error($e->getMessage());
+            $message = Json::encode([$e->getMessage(), $update]);
+            Yii::error($message, 'telegram_message_save');
         }
     }
 }

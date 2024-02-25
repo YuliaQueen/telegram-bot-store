@@ -81,4 +81,15 @@ class TelegramClient extends Component implements TelegramClientInterface
     {
         return $this->api->getWebhookInfo();
     }
+
+    /**
+     * @throws TelegramSDKException
+     */
+    public function sendMessage($id, string $string): void
+    {
+        $this->api->sendMessage([
+            'chat_id' => $id,
+            'text'    => $string
+        ]);
+    }
 }
