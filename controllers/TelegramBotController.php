@@ -67,17 +67,17 @@ class TelegramBotController extends Controller
         $chatId = $update['message']['chat']['id'];
         $name = $update['message']['from']['first_name'];
 
-        if (empty($text)) {
-            (new DefaultCommand())->execute($chatId, $name);
-            return;
-        }
-
         $commands = [
             TelegramCommands::START->value   => new StartCommand(),
             TelegramCommands::HELP->value    => new HelpCommand(),
             TelegramCommands::STORE->value   => new StoreCommand(),
             TelegramCommands::DEFAULT->value => new DefaultCommand(),
         ];
+
+        if (empty($text)) {
+            $commands[TelegramCommands::DEFAULT->value]->execute($chatId, $name);
+            return;
+        }
 
         /** @var Command $command */
         $command = $commands[$text] ?? $commands[TelegramCommands::DEFAULT->value];
