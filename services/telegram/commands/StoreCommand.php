@@ -30,7 +30,7 @@ class StoreCommand extends BaseCommand
         return [
             'inline_keyboard' => [
                 [
-                    ['text' => Phrases::BtnOpenStore->value, 'web_app' => ['url' => Url::to(['store/index'], true)]],
+                    ['text' => Phrases::BtnOpenStore->value, 'web_app' => ['url' => Url::to(['/store/store/index'], true)]],
                 ]
             ]
         ];
