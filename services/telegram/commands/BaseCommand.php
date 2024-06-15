@@ -20,5 +20,5 @@ abstract class BaseCommand extends Component implements Command
     /**
      * @inheritDoc
      */
-    public abstract function execute(int $chatId, $name): void;
+    public abstract function execute(int $chatId, $name, $data = null): void;
 }

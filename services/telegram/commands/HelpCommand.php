@@ -7,9 +7,12 @@ use Yii;
 class HelpCommand extends BaseCommand
 {
     /**
+     * @param int    $chatId
+     * @param string $name
+     * @param null   $data
      * @inheritDoc
      */
-    public function execute($chatId, $name): void
+    public function execute($chatId, $name, $data = null): void
     {
         $this->tg->sendMessage([
             'chat_id' => $chatId,
