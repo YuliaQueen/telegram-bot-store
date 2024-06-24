@@ -2,12 +2,6 @@
 
 namespace app\controllers;
 
-use app\enums\TelegramCommands;
-use app\services\telegram\commands\Command;
-use app\services\telegram\commands\DefaultCommand;
-use app\services\telegram\commands\HelpCommand;
-use app\services\telegram\commands\StartCommand;
-use app\services\telegram\commands\StoreCommand;
 use app\services\telegram\TelegramClientInterface;
 use app\services\telegram\TelegramMessageService;
 use Telegram\Bot\Exceptions\TelegramSDKException;
@@ -61,30 +55,10 @@ class TelegramBotController extends Controller
      */
     public function actionIndex(): void
     {
-        $update = $this->tg->getWebhookUpdate();
-
-        $text = $update['message']['text'] ?? null;
-        $chatId = $update['message']['chat']['id'];
-        $name = $update['message']['from']['first_name'];
-
-        $commands = [
-            TelegramCommands::START->value   => new StartCommand(),
-            TelegramCommands::HELP->value    => new HelpCommand(),
-            TelegramCommands::STORE->value   => new StoreCommand(),
-            TelegramCommands::DEFAULT->value => new DefaultCommand(),
-        ];
-
-        if (empty($text)) {
-            $commands[TelegramCommands::DEFAULT->value]->execute($chatId, $name);
-            return;
+        $update = $this->tg->api->commandsHandler(true);
+        if ($update) {
+            $this->messageService->saveMessage($update);
         }
-
-        /** @var Command $command */
-        $command = $commands[$text] ?? $commands[TelegramCommands::DEFAULT->value];
-
-        $command->execute($chatId, $name);
-
-        $this->messageService->saveMessage($update);
     }
 
     public function actionSetWebhook(): bool

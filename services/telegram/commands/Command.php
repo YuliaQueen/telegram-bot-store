@@ -9,5 +9,5 @@ interface Command
      * @param string $name
      * @return void
      */
-    public function execute(int $chatId, string $name): void;
+    public function execute(int $chatId, string $name, $data = null): void;
 }

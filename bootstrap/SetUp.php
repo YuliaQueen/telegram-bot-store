@@ -2,6 +2,7 @@
 
 namespace app\bootstrap;
 
+use app\services\subscribe\SubscribeService;
 use app\services\telegram\TelegramClient;
 use app\services\telegram\TelegramClientInterface;
 use Yii;
@@ -19,6 +20,10 @@ class SetUp implements BootstrapInterface
 
         $container->setSingleton(TelegramClientInterface::class, function () {
             return new TelegramClient();
+        });
+
+        $container->setSingleton(SubscribeService::class, function () {
+            return new SubscribeService();
         });
     }
 }

@@ -9,8 +9,8 @@ use yii\web\View;
 /** @var string       $content */
 
 AppAsset::register($this);
-$this->registerAssetBundle(TelegramWebAppAsset::class, View::POS_HEAD);
-$this->registerJsFile('@web/js/store/main.js', ['depends' => [TelegramWebAppAsset::class], 'position' => View::POS_HEAD]);
+TelegramWebAppAsset::register($this);
+$this->registerJsFile('/js/store/main.js', ['depends' => [TelegramWebAppAsset::class]]);
 ?>
 <?php $this->beginPage(); ?>
 <!DOCTYPE html>

@@ -2,38 +2,53 @@
 
 namespace app\services\telegram\commands;
 
-use app\enums\Phrases;
-use app\services\telegram\TelegramClient;
-use Yii;
-use yii\helpers\Url;
+use Telegram\Bot\Actions;
+use Telegram\Bot\Commands\Command;
 
-class StartCommand extends BaseCommand
+/**
+ * This command can be triggered in two ways:
+ * /start and /join due to the alias.
+ */
+class StartCommand extends Command
 {
-    /**
-     * @inheritDoc
-     */
-    public function execute($chatId, $name): void
-    {
-        $this->tg->sendMessage([
-            'chat_id'      => $chatId,
-            'text'         => Yii::t('app', 'Привет, {name}!', ['name' => $name]),
-            'parse_mode'   => TelegramClient::PARSE_MODE_HTML,
-            'reply_markup' => $this->tg->generateKeyboard($this->getKeyboardParams()),
-        ]);
-    }
+    protected string $name = 'start';
+    protected array $aliases = ['join'];
+    protected string $description = 'Start Command to get you started';
+    protected string $pattern = '{username} {age: \d+}';
 
-    /**
-     * @return array
-     */
-    public function getKeyboardParams(): array
+    public function handle()
     {
-        return [
-            'keyboard'        => [
-                [
-                    ['text' => Phrases::BtnSubscribe->value, 'web_app' => ['url' => Url::to(['subscribe/index'], true)]],
-                ]
-            ],
-            'resize_keyboard' => true
-        ];
+        # username from Update object to be used as fallback.
+        $fallbackUsername = $this->getUpdate()->getMessage()->from->username;
+
+        # Get the username argument if the user provides,
+        # (optional) fallback to username from Update object as the default.
+        $username = $this->argument(
+            'username',
+            $fallbackUsername
+        );
+
+        $this->replyWithMessage([
+            'text' => "Привет {$username}! Тебя приветствует бот:"
+        ]);
+
+        # This will update the chat status to "typing..."
+        $this->replyWithChatAction(['action' => Actions::TYPING]);
+
+        # Get all the registered commands.
+        $commands = $this->getTelegram()->getCommands();
+
+        $response = '';
+        foreach ($commands as $name => $command) {
+            $response .= sprintf('/%s - %s' . PHP_EOL, $name, $command->getDescription());
+        }
+
+        $this->replyWithMessage(['text' => $response]);
+
+        if($this->argument('age', 0) >= 18) {
+            $this->replyWithMessage(['text' => 'Congrats, You are eligible to buy premimum access to our membership!']);
+        } else {
+            $this->replyWithMessage(['text' => 'Sorry, you are not eligible to access premium membership yet!']);
+        }
     }
 }
