@@ -4,11 +4,11 @@ namespace app\services\telegram;
 
 use app\models\TelegramMessage;
 use Exception;
-use Telegram\Bot\Keyboard\Keyboard;
 use Telegram\Bot\Objects\Update;
 use Yii;
 use yii\base\Component;
 use yii\helpers\Json;
+use yii\helpers\VarDumper;
 
 class TelegramMessageService extends Component
 {
@@ -30,29 +30,28 @@ class TelegramMessageService extends Component
      */
     public function saveMessage(Update $update): void
     {
+        Yii::error(VarDumper::dumpAsString($update, 20, 1), 'telegram');
         try {
-            if (empty($this->messages[$update['update_id']])) {
-                $tgMessage = new TelegramMessage();
-                $tgMessage->setAttributes(
-                    [
-                        'update_id'     => $update['update_id'],
-                        'chat_id'       => $update['message']['chat']['id'],
-                        'chat_type'     => $update['message']['chat']['type'],
-                        'message_id'    => $update['message']['message_id'],
-                        'text'          => $update['message']['text'],
-                        'user_id'       => $update['message']['from']['id'],
-                        'is_bot'        => $update['message']['from']['is_bot'],
-                        'first_name'    => $update['message']['from']['first_name'],
-                        'last_name'     => $update['message']['from']['last_name'],
-                        'username'      => $update['message']['from']['username'],
-                        'language_code' => $update['message']['from']['language_code'],
-                        'is_premium'    => $update['message']['from']['is_premium'],
-                        'date'          => $update['message']['date'],
-                    ]
-                );
-                if (!$tgMessage->save()) {
-                    throw new Exception(Yii::t('app', 'Failed to save message'));
-                }
+            $tgMessage = new TelegramMessage();
+            $tgMessage->setAttributes([
+                'update_id'            => $update->updateId ?? null,
+                'chat_id'              => $update['message']['chat']['id'] ?? null,
+                'chat_type'            => $update['message']['chat']['type'] ?? null,
+                'message_id'           => $update['message']['message_id'] ?? null,
+                'text'                 => $update['message']['text'] ?? null,
+                'user_id'              => $update['message']['from']['id'] ?? null,
+                'is_bot'               => $update['message']['from']['is_bot'] ?? null,
+                'first_name'           => $update['message']['from']['first_name'] ?? null,
+                'last_name'            => $update['message']['from']['last_name'] ?? null,
+                'username'             => $update['message']['from']['username'] ?? null,
+                'language_code'        => $update['message']['from']['language_code'] ?? null,
+                'is_premium'           => $update['message']['from']['is_premium'] ?? null,
+                'date'                 => $update['message']['date'] ?? null,
+                'contact_phone_number' => $update->message->contact->phoneNumber ?? null,
+            ]);
+
+            if (!$tgMessage->save()) {
+                Yii::error(VarDumper::dumpAsString($tgMessage->getErrors()), 'telegram_message_save');
             }
         } catch (Exception $e) {
             $message = Json::encode([$e->getMessage(), $update]);

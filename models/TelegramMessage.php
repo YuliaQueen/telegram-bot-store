@@ -19,6 +19,7 @@ use yii\db\ActiveRecord;
  * @property string $language_code
  * @property bool   $is_premium
  * @property int    $date
+ * @property string $contact_phone_number
  */
 class TelegramMessage extends ActiveRecord
 {
@@ -43,25 +44,27 @@ class TelegramMessage extends ActiveRecord
             [[
                 'is_bot', 'is_premium'
             ], 'boolean'],
+            [['contact_phone_number'], 'safe'],
         ];
     }
 
     public function attributeLabels()
     {
         return [
-            'update_id'     => 'Update ID',
-            'chat_id'       => 'Chat ID',
-            'chat_type'     => 'Chat Type',
-            'message_id'    => 'Message ID',
-            'text'          => 'Text',
-            'user_id'       => 'User ID',
-            'is_bot'        => 'Is Bot',
-            'first_name'    => 'First Name',
-            'last_name'     => 'Last Name',
-            'username'      => 'Username',
-            'language_code' => 'Language Code',
-            'is_premium'    => 'Is Premium',
-            'date'          => 'Date',
+            'update_id'            => 'Update ID',
+            'chat_id'              => 'Chat ID',
+            'chat_type'            => 'Chat Type',
+            'message_id'           => 'Message ID',
+            'text'                 => 'Text',
+            'user_id'              => 'User ID',
+            'is_bot'               => 'Is Bot',
+            'first_name'           => 'First Name',
+            'last_name'            => 'Last Name',
+            'username'             => 'Username',
+            'language_code'        => 'Language Code',
+            'is_premium'           => 'Is Premium',
+            'date'                 => 'Date',
+            'contact_phone_number' => 'Contact Phone Number',
         ];
     }
 }

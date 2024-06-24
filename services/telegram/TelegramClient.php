@@ -2,6 +2,8 @@
 
 namespace app\services\telegram;
 
+use app\services\telegram\commands\SendPhoneCommand;
+use app\services\telegram\commands\StartCommand;
 use Telegram\Bot\Api;
 use Telegram\Bot\Exceptions\TelegramSDKException;
 use Telegram\Bot\Keyboard\Keyboard;
@@ -15,7 +17,7 @@ class TelegramClient extends Component implements TelegramClientInterface
 {
     const PARSE_MODE_HTML = 'HTML';
 
-    private Api $api;
+    public Api $api;
 
     /**
      * @throws TelegramSDKException
@@ -24,6 +26,10 @@ class TelegramClient extends Component implements TelegramClientInterface
     {
         parent::__construct();
         $this->api = new Api(Yii::$app->params['telegramApiKey']);
+        $this->api->addCommands([
+            StartCommand::class,
+            SendPhoneCommand::class,
+        ]);
     }
 
     /**

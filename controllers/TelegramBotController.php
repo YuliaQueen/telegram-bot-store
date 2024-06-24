@@ -2,13 +2,6 @@
 
 namespace app\controllers;
 
-use app\enums\TelegramCommands;
-use app\services\telegram\commands\Command;
-use app\services\telegram\commands\DefaultCommand;
-use app\services\telegram\commands\HelpCommand;
-use app\services\telegram\commands\StartCommand;
-use app\services\telegram\commands\StoreCommand;
-use app\services\telegram\commands\WebAppDataCommand;
 use app\services\telegram\TelegramClientInterface;
 use app\services\telegram\TelegramMessageService;
 use Telegram\Bot\Exceptions\TelegramSDKException;
@@ -62,31 +55,10 @@ class TelegramBotController extends Controller
      */
     public function actionIndex(): void
     {
-        $update = $this->tg->getWebhookUpdate();
-
-        $text   = $update['message']['text'] ?? null;
-        $chatId = $update['message']['chat']['id'];
-        $name   = $update['message']['from']['first_name'];
-        $data   = $update['message']['web_app_data']['data'] ?? null;
-
-        $commands = $this->getCommands();
-
-        if ($data) {
-            $commands[TelegramCommands::WEB_APP_DATA->value]->execute($chatId, $name, $data);
-            return;
+        $update = $this->tg->api->commandsHandler(true);
+        if ($update) {
+            $this->messageService->saveMessage($update);
         }
-
-        if (empty($text)) {
-            $commands[TelegramCommands::DEFAULT->value]->execute($chatId, $name);
-            return;
-        }
-
-        /** @var Command $command */
-        $command = $commands[$text] ?? $commands[TelegramCommands::DEFAULT->value];
-
-        $command->execute($chatId, $name);
-
-        $this->messageService->saveMessage($update);
     }
 
     public function actionSetWebhook(): bool
@@ -108,19 +80,5 @@ class TelegramBotController extends Controller
     public function actionWebhookInfo(): WebhookInfo
     {
         return $this->tg->getWebhookInfo();
-    }
-
-    /**
-     * @return array
-     */
-    private function getCommands(): array
-    {
-        return [
-            TelegramCommands::START->value        => new StartCommand(),
-            TelegramCommands::HELP->value         => new HelpCommand(),
-            TelegramCommands::STORE->value        => new StoreCommand(),
-            TelegramCommands::DEFAULT->value      => new DefaultCommand(),
-            TelegramCommands::WEB_APP_DATA->value => new WebAppDataCommand(),
-        ];
     }
 }
